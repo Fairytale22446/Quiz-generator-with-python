@@ -12,50 +12,44 @@ def quiz_game():
         ("Which planet is known as the Red Planet?", {"A": "Venus", "B": "Mars", "C": "Jupiter", "D": "Saturn"}, "B")
     ]
     
-    random.shuffle(questions)
-    
     if "score" not in st.session_state:
         st.session_state.score = 0
         st.session_state.question_index = 0
-        st.session_state.user_answer = None
-        st.session_state.show_result = False
+        st.session_state.feedback = ""
+        st.session_state.submitted = False
     
     if st.session_state.question_index < len(questions):
         question, options, correct_answer = questions[st.session_state.question_index]
         st.write(f"### {question}")
         
         options_display = {key: f"{key}) {value}" for key, value in options.items()}
-        user_answer = st.radio("Choose an option:", list(options_display.values()), index=None, key=f"question_{st.session_state.question_index}")
+        user_answer = st.radio("Choose an option:", list(options_display.values()), key=f"question_{st.session_state.question_index}")
         
-        if st.button("Submit"):
-            if user_answer:
-                selected_option = user_answer[0]
-                st.session_state.user_answer = selected_option
-                st.session_state.show_result = True
-                st.rerun()
-            else:
-                st.warning("⚠️ Please select an option before submitting!")
-        
-        if st.session_state.show_result:
-            selected_option = st.session_state.user_answer
+        if st.button("Submit") and user_answer:
+            selected_option = user_answer[0]  # Extract the first character (A, B, C, or D)
             if selected_option == correct_answer:
-                st.success(f"✅ Correct! 🎉 {selected_option}) {options[selected_option]}")
+                st.session_state.feedback = f"✅ Correct! 🎉 {selected_option}) {options[selected_option]}"
                 st.session_state.score += 1
             else:
-                st.error(f"❌ Incorrect! You chose {selected_option}) {options[selected_option]}. The correct answer is {correct_answer}) {options[correct_answer]}.")
+                st.session_state.feedback = f"❌ Incorrect! You chose {selected_option}) {options[selected_option]}. The correct answer is {correct_answer}) {options[correct_answer]}."
             
+            st.session_state.submitted = True
+            st.rerun()
+        
+        if st.session_state.submitted:
+            st.write(st.session_state.feedback)
             if st.button("Next Question"):
                 st.session_state.question_index += 1
-                st.session_state.user_answer = None
-                st.session_state.show_result = False
+                st.session_state.submitted = False
+                st.session_state.feedback = ""
                 st.rerun()
     else:
         st.write(f"## 🎯 Final Score: {st.session_state.score}/{len(questions)} 🎯")
         if st.button("Restart Quiz"):
             st.session_state.score = 0
             st.session_state.question_index = 0
-            st.session_state.user_answer = None
-            st.session_state.show_result = False
+            st.session_state.feedback = ""
+            st.session_state.submitted = False
             st.rerun()
 
 quiz_game()
